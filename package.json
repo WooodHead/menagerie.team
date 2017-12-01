@@ -1,0 +1,16 @@
+{
+  "name": "krol",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "crawl": "scrapy runspider krol.py -o posts.json -t json",
+    "rebuild": "node index.js < posts.json > index.json"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "lunr": "^2.1.4"
+  }
+}
