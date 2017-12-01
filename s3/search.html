@@ -117,7 +117,7 @@
     function doSearch() {
       var text = $("#searchText").val();
       var results = idx.search(text);
-      console.log(store);
+      console.log(results);
 
       $("#searchResults").empty().append(
         results.length ? results.map(function(result) {
@@ -132,7 +132,7 @@
               .html(truncate(80, store[result.ref].body))
             );
           return el;
-        }) : $("<p><strong>No results found</strong></p>")
+        }) : $("<p><strong>No results found for '" + text + "'</strong></p>")
       );
     };
 
@@ -140,8 +140,8 @@
       $.ajax({ url: "search.json" }).done(function (data) {
         store = data.store;
         idx = lunr.Index.load(data.idx);
-        $("#searchButton").attr("disabled", false);
         $("#searchDiv").removeClass("loading");
+        $("#searchText").removeAttr("disabled");
       });
 
       $("#searchText").keyup(function(event) {
@@ -159,12 +159,16 @@
   <div class="ui vertical stripe segment">
     <div class="ui middle aligned stackable grid container">
       <div class="row">
-        <div class="column">       
-          <div class="ui fluid action input loading" id="searchDiv">
-            <input type="text" placeholder="Search..." id="searchText">
-            <button class="ui icon button" id="searchButton" disabled onClick="doSearch()">
-              <i class="search icon"></i>
-            </button>
+        <div class="column">
+          <h1>Menagerie Roll20 Forum Search</h1>
+          <p>
+            See <a href="https://lunrjs.com/guides/searching.html" target="_blank">here</a>
+            for search rules.
+            Indexes are updated <i>manually</i> - do not expect up to date content.
+          </p>
+          <div class="ui fluid icon input loading" id="searchDiv">
+            <input type="text" placeholder="Search..." id="searchText" disabled>
+            <i class="search icon"></i>
           </div>
         </div>
       </div>
