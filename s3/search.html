@@ -114,6 +114,22 @@
       }
     }
 
+    function makeElementFromDoc(doc) {
+      var el = $("<p>")
+        .append($("<a>")
+          .attr("target", "_blank")
+          .attr("href", doc.url)
+          .text(doc.title)
+        );
+      if (doc.body) {
+        el.append($("<br>"))
+          .append($("<small>")
+            .html(truncate(80, doc.body))
+          );
+      }
+      return el;
+    }
+
     function doSearch() {
       var text = $("#searchText").val();
       var results = idx.search(text);
@@ -121,17 +137,7 @@
 
       $("#searchResults").empty().append(
         results.length ? results.map(function(result) {
-          var el = $("<p>")
-            .append($("<a>")
-              .attr("target", "_blank")
-              .attr("href", store[result.ref].url)
-              .text(store[result.ref].title)
-            )
-            .append($("<br>"))
-            .append($("<small>")
-              .html(truncate(80, store[result.ref].body))
-            );
-          return el;
+          return makeElementFromDoc(store[result.ref]);
         }) : $("<p><strong>No results found for '" + text + "'</strong></p>")
       );
     };
@@ -140,6 +146,25 @@
       $.ajax({ url: "search.json" }).done(function (data) {
         store = data.store;
         idx = lunr.Index.load(data.idx);
+        tagKeys = Object.keys(data.tags);
+        tagKeys.sort();
+        $("#searchTags").empty().append(
+          tagKeys.length ? tagKeys.map(function(tagKey) {
+            var el = $("<p>")
+              .append($("<a>")
+                .attr('href', '#')
+                .on("click", function() {
+                  $("#searchResults").empty().append(
+                    data.tags[tagKey].map(makeElementFromDoc)
+                  );
+                  return false;
+                })
+                .text(tagKey)
+              );
+            return el;
+          }) : $("<p>No tags</p>")
+        );
+        // TODO: update #searchTags
         $("#searchDiv").removeClass("loading");
         $("#searchText").removeAttr("disabled");
       });
@@ -157,23 +182,54 @@
 <!-- Page Contents -->
 <div class="pusher">
   <div class="ui vertical stripe segment">
-    <div class="ui middle aligned stackable grid container">
+    <div class="ui top aligned stackable grid container">
       <div class="row">
-        <div class="column">
+        <div class="twelve wide column">
           <h1>Menagerie Roll20 Forum Search</h1>
           <p>
-            See <a href="https://lunrjs.com/guides/searching.html" target="_blank">here</a>
-            for search rules.
-            Indexes are updated <i>manually</i> - do not expect up to date content.
+            <small>
+                Indexes are updated <i>manually</i> - do not expect up to date content.                
+            </small>
           </p>
           <div class="ui fluid icon input loading" id="searchDiv">
             <input type="text" placeholder="Search..." id="searchText" disabled>
             <i class="search icon"></i>
           </div>
+          <br />
+          <div id="searchResults">
+            <div class="ui list">
+              <div class="item">
+                <i class="search icon"></i>
+                <div class="content">
+                  <div class="header">keyword1 keyword2</div>
+                  <div class="description">Find <strong>keyword1</strong> OR <strong>keyword2</strong>. Favors matches that have more keywords.</div>
+                </div>
+              </div>
+              <div class="item">
+                <i class="search icon"></i>
+                <div class="content">
+                  <div class="header">keyword*</div>
+                  <div class="description">Wildcard (*) matches at the start, middle, or end of a search term.</div>
+                </div>
+              </div>
+              <div class="item">
+                <i class="search icon"></i>
+                <div class="content">
+                  <div class="header">keyword1^10 keyword2</div>
+                  <div class="description">Boost the relative power of one keyword compared to others.</div>
+                </div>
+              </div>
+              <div class="item">
+                <i class="search icon"></i>
+                <div class="content">
+                  <div class="header">chin~1</div>
+                  <div class="description">Fuzzy match keywords, number indicates edit distance (e.g. chin or chan).</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-      <div class="row">
-        <div class="column" id="searchResults">
+        <div class="four wide column" id="searchTags">
         </div>
       </div>
     </div>

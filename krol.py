@@ -21,6 +21,12 @@ class CampaignForumSpider(scrapy.Spider):
 
 	def parse_post(self, response):
 		title = response.css('h1.posttitle::text').extract_first()
+		yield {
+			'id': response.url,
+			'url': response.url,
+			'title': title,
+			'body': ''
+		}
 		for post in response.css('div.post'):
 			post_id = post.xpath('@data-postid').extract_first()
 			body = post.css('div.postcontent::text').extract_first()
