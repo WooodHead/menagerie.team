@@ -164,9 +164,9 @@
             return el;
           }) : $("<p>No tags</p>")
         );
-        // TODO: update #searchTags
         $("#searchDiv").removeClass("loading");
         $("#searchText").removeAttr("disabled");
+        $("#rebuildDate").text(data.date);
       });
 
       $("#searchText").keyup(function(event) {
@@ -188,7 +188,8 @@
           <h1>Menagerie Roll20 Forum Search</h1>
           <p>
             <small>
-                Indexes are updated <i>manually</i> - do not expect up to date content.                
+              Indexes were rebuilt:
+              <span id="rebuildDate">never</span>
             </small>
           </p>
           <div class="ui fluid icon input loading" id="searchDiv">

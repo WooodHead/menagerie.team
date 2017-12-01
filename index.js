@@ -47,7 +47,9 @@ stdin.on('end', function () {
     });
   }
 
+  d = new Date();
   stdout.write(JSON.stringify({
+    date: d.toLocaleString(),
     store: store,
     tags: tags,
     idx: idx
