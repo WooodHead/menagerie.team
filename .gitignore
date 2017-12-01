@@ -1,3 +1,4 @@
 node_modules
 index.json
 posts.json
+s3/search.json

@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "crawl": "scrapy runspider krol.py -o posts.json -t json",
-    "rebuild": "node index.js < posts.json > index.json"
+    "rebuild": "node index.js < posts.json > s3/search.json",
+    "deploy": "aws s3 sync s3/ s3://menagerie.team/"
   },
   "author": "",
   "license": "ISC",

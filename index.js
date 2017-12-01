@@ -12,7 +12,8 @@ stdin.on('data', function (data) {
 
 stdin.on('end', function () {
   var documents = JSON.parse(buffer.join(''))
-
+  var store = {};
+  
   var idx = lunr(function () {
     this.ref('id')
     this.field('title')
@@ -22,7 +23,14 @@ stdin.on('end', function () {
     documents.forEach(function (doc) {
       this.add(doc)
     }, this)
-  })
+  });
 
-  stdout.write(JSON.stringify(idx))
+  documents.forEach(function (doc) {
+    store[doc.id] = doc;
+  });
+
+  stdout.write(JSON.stringify({
+    store: store,
+    idx: idx
+  }))
 })

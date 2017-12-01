@@ -26,7 +26,7 @@ class CampaignForumSpider(scrapy.Spider):
 			body = post.css('div.postcontent::text').extract_first()
 			yield {
 				'id': post_id,
-				'url': response.url,
+				'url': ('https://app.roll20.net/forum/permalink/%s/' % post_id),
 				'title': title,
 				'body': body
 			}
