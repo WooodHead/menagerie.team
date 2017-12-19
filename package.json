@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "clean": "rm posts.json s3/search.json",
+    "clean": "rm -f posts.json s3/search.json",
     "fetch": "scrapy runspider krol.py -o posts.json -t json",
     "build": "node index.js < posts.json > s3/search.json",
     "deploy": "aws s3 sync s3/ s3://menagerie.team/"

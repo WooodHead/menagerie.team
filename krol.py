@@ -20,6 +20,7 @@ class CampaignForumSpider(scrapy.Spider):
 			yield response.follow(next_url, self.parse)
 
 	def parse_post(self, response):
+		# Yield the page so we can keep track of tags.
 		title = response.css('h1.posttitle::text').extract_first()
 		yield {
 			'id': response.url,
@@ -27,6 +28,7 @@ class CampaignForumSpider(scrapy.Spider):
 			'title': title,
 			'body': ''
 		}
+		# Yield individual posts.
 		for post in response.css('div.post'):
 			post_id = post.xpath('@data-postid').extract_first()
 			body = post.css('div.postcontent::text').extract_first()
@@ -36,3 +38,7 @@ class CampaignForumSpider(scrapy.Spider):
 				'title': title,
 				'body': body
 			}
+		# Roll20 drops us onto the first page of a multi-page thread when not logged in.
+		older = response.css('ul.pagination li.active ~ li a::attr("href")').extract_first()
+		if older:
+			yield response.follow(older, self.parse_post)
