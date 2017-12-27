@@ -31,11 +31,13 @@ class CampaignForumSpider(scrapy.Spider):
 		# Yield individual posts.
 		for post in response.css('div.post'):
 			post_id = post.xpath('@data-postid').extract_first()
-			body = post.css('div.postcontent::text').extract_first()
+			author = post.css('div.name a::text').extract_first().strip()
+			body = post.css('div.postcontent::text').extract_first().strip()
 			yield {
 				'id': post_id,
 				'url': ('https://app.roll20.net/forum/permalink/%s/' % post_id),
 				'title': title,
+				'author': author,
 				'body': body
 			}
 		# Roll20 drops us onto the first page of a multi-page thread when not logged in.
