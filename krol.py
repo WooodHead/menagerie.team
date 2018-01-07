@@ -26,6 +26,7 @@ class CampaignForumSpider(scrapy.Spider):
 			'id': response.url,
 			'url': response.url,
 			'title': title,
+			'author': '',
 			'body': ''
 		}
 		# Yield individual posts.

@@ -19,6 +19,7 @@ stdin.on('end', function () {
     this.ref('id')
     this.field('title')
     this.field('body')
+    this.field('author')
     this.field('url')
 
     documents.forEach(function (doc) {
