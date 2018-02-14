@@ -132,14 +132,21 @@
 
     function doSearch() {
       var text = $("#searchText").val();
-      var results = idx.search(text);
-      console.log(results);
+      try {
+        var results = idx.search(text);
+        $("#searchError").transition('hide');
+        console.log(results);
 
-      $("#searchResults").empty().append(
-        results.length ? results.map(function(result) {
-          return makeElementFromDoc(store[result.ref]);
-        }) : $("<p><strong>No results found for '" + text + "'</strong></p>")
-      );
+        $("#searchResults").empty().append(
+          results.length ? results.map(function(result) {
+            return makeElementFromDoc(store[result.ref]);
+          }) : $("<p><strong>No results found for '" + text + "'</strong></p>")
+        );
+      } catch (e) {
+        console.error(e);
+        $("#searchErrorText").text(e);
+        $("#searchError").transition('show');
+      }
     };
 
     $(document).ready(function() {
@@ -174,6 +181,10 @@
           doSearch();
         }
       });
+
+      $('.message .close').on('click', function() {
+        $(this).closest('.message').transition('hide');
+      });
     });
   </script>
 </head>
@@ -197,6 +208,13 @@
             <i class="search icon"></i>
           </div>
           <br />
+          <div class="ui hidden negative message" id="searchError">
+            <i class="close icon"></i>
+            <div class="header">
+              There was an error with your search
+            </div>
+            <p id="searchErrorText"></p>
+          </div>
           <div id="searchResults">
             <div class="ui list">
               <div class="item">
