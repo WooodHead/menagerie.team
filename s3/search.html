@@ -157,7 +157,7 @@
         tagKeys.sort();
         $("#searchTags").empty().append(
           tagKeys.length ? tagKeys.map(function(tagKey) {
-            var el = $("<p>")
+            var el = $("<span>")
               .append($("<a>")
                 .attr('href', '#')
                 .on("click", function() {
@@ -166,7 +166,7 @@
                   );
                   return false;
                 })
-                .text(tagKey)
+                .text(tagKey + " ")
               );
             return el;
           }) : $("<p>No tags</p>")
@@ -259,7 +259,8 @@
             </div>
           </div>
         </div>
-        <div class="four wide column" id="searchTags">
+        <div class="four wide column">
+          <p id="searchTags"></p>
         </div>
       </div>
     </div>

@@ -37,7 +37,16 @@ stdin.on('end', function () {
           if(tags[tag] === undefined) { tags[tag] = new Set(); }
           tags[tag].add({title: doc.title, url: doc.url});
         });
-      }  
+      }
+    } else {
+      var tagsFound = doc.body.match(/(?:^|\s)(?:#)([a-zA-Z\d]+)/gm);
+      if (tagsFound) {
+        tagsFound = tagsFound.map((x) => x.trim());
+        tagsFound.forEach((tag) => {
+          if(tags[tag] === undefined) { tags[tag] = new Set(); }
+          tags[tag].add({title: doc.title, url: doc.url});
+        })
+      }
     }
   });
 
