@@ -1,55 +1,52 @@
-var lunr = require('lunr'),
-    stdin = process.stdin,
-    stdout = process.stdout,
-    buffer = []
-  
-stdin.resume()
-stdin.setEncoding('utf8')
+const lunr = require('lunr')
+const crawler = require('./crawl')
 
-stdin.on('data', function (data) {
-  buffer.push(data)
+var store = {}
+var tags = {}
+var documents = []
+
+const parseTags = (doc) => {
+  if (!doc.body) {
+    var tagsFound = doc.title.match(/\[[^\[]*\]/g);
+    if (tagsFound) {
+      tagsFound.forEach(function(tag) {
+        if(tags[tag] === undefined) { tags[tag] = new Set(); }
+        tags[tag].add({title: doc.title, url: doc.url});
+      });
+    }
+  } else {
+    var tagsFound = doc.body.match(/(?:^|\s)(?:#)([a-zA-Z\d]+)/gm);
+    if (tagsFound) {
+      tagsFound = tagsFound.map((x) => x.trim());
+      tagsFound.forEach((tag) => {
+        if(tags[tag] === undefined) { tags[tag] = new Set(); }
+        tags[tag].add({title: doc.title, url: doc.url});
+      })
+    }
+  }
+}
+
+crawler.on('document', (doc) => {
+  documents.push(doc)
 })
 
-stdin.on('end', function () {
-  var documents = JSON.parse(buffer.join(''))
-  var store = {};
-  var tags = {};
+crawler.on('done', () => {
+  var idx = lunr(function() {
+    var _idx = this
   
-  var idx = lunr(function () {
-    this.ref('id')
-    this.field('title')
-    this.field('body')
-    this.field('author')
-    this.field('url')
-
-    documents.forEach(function (doc) {
-      this.add(doc)
-    }, this)
-  });
-
-  documents.forEach(function (doc) {
-    store[doc.id] = doc;
-
-    if (!doc.body) {
-      var tagsFound = doc.title.match(/\[[^\[]*\]/g);
-      if (tagsFound) {
-        tagsFound.forEach(function(tag) {
-          if(tags[tag] === undefined) { tags[tag] = new Set(); }
-          tags[tag].add({title: doc.title, url: doc.url});
-        });
-      }
-    } else {
-      var tagsFound = doc.body.match(/(?:^|\s)(?:#)([a-zA-Z\d]+)/gm);
-      if (tagsFound) {
-        tagsFound = tagsFound.map((x) => x.trim());
-        tagsFound.forEach((tag) => {
-          if(tags[tag] === undefined) { tags[tag] = new Set(); }
-          tags[tag].add({title: doc.title, url: doc.url});
-        })
-      }
-    }
-  });
-
+    _idx.ref('id')
+    _idx.field('title')
+    _idx.field('body')
+    _idx.field('author')
+    _idx.field('url')
+  
+    documents.forEach(function(document) {
+      _idx.add(document)
+      store[document.id] = document
+      parseTags(document)
+    })  
+  })
+  
   for(key in tags) {
     s = tags[key];
     tags[key] = [...s].sort(function(a, b) {
@@ -58,10 +55,12 @@ stdin.on('end', function () {
   }
 
   d = new Date();
-  stdout.write(JSON.stringify({
+  console.log(JSON.stringify({
     date: d.toLocaleString(),
     store: store,
     tags: tags,
     idx: idx
   }))
 })
+
+crawler.emit('start')

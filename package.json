@@ -4,14 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "clean": "rm -f posts.json s3/search.json",
-    "fetch": "scrapy runspider krol.py -o posts.json -t json",
-    "build": "node index.js < posts.json > s3/search.json",
+    "build": "node index.js > s3/search.json",
     "deploy": "aws s3 sync s3/ s3://menagerie.team/"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "crawler": "^1.1.2",
     "lunr": "^2.1.5"
   }
 }
