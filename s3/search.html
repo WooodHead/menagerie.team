@@ -132,8 +132,14 @@
 
     function doSearch() {
       var text = $("#searchText").val().replace('#', 'tags:')
+      var sortOrder = $("#sortOrder").val()
       try {
         var results = idx.search(text);
+        if (sortOrder == "ref") {
+          results.sort(function(a, b) {
+            return parseInt(b.ref) - parseInt(a.ref)
+          })
+        }
         $("#searchError").transition('hide');
         console.log(results);
 
@@ -200,9 +206,13 @@
               <span id="rebuildDate">never</span>
             </small>
           </p>
-          <div class="ui fluid icon input loading" id="searchDiv">
-            <input type="text" placeholder="Search..." id="searchText" disabled>
+          <div class="ui fluid right action left icon input loading" id="searchDiv">
             <i class="search icon"></i>
+            <input type="text" placeholder="Search" id="searchText" disabled>
+            <select class="ui compact selection dropdown" id="sortOrder" onChange="doSearch()">
+              <option selected value="">Relevance</option>
+              <option value="ref">Date</option>
+            </select>
           </div>
           <br />
           <div class="ui hidden negative message" id="searchError">
