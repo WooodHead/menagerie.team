@@ -131,7 +131,7 @@
     }
 
     function doSearch() {
-      var text = $("#searchText").val();
+      var text = $("#searchText").val().replace('#', 'tags:')
       try {
         var results = idx.search(text);
         $("#searchError").transition('hide');
@@ -153,20 +153,17 @@
       $.ajax({ url: "search.json" }).done(function (data) {
         store = data.store;
         idx = lunr.Index.load(data.idx);
-        tagKeys = Object.keys(data.tags);
-        tagKeys.sort();
         $("#searchTags").empty().append(
-          tagKeys.length ? tagKeys.map(function(tagKey) {
+          data.tags.length ? data.tags.map(function(tag) {
             var el = $("<span>")
               .append($("<a>")
                 .attr('href', '#')
                 .on("click", function() {
-                  $("#searchResults").empty().append(
-                    data.tags[tagKey].map(makeElementFromDoc)
-                  );
+                  $("#searchText").val("tags:" + tag)
+                  doSearch()
                   return false;
                 })
-                .text(tagKey + " ")
+                .text("#" + tag + " ")
               );
             return el;
           }) : $("<p>No tags</p>")

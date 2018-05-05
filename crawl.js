@@ -14,6 +14,17 @@ const pageEmitter = new EventEmitter()
 
 module.exports = pageEmitter
 
+const pageTitleRegexp = new RegExp(/\[([^\[]*)\]/g)
+const bodyRegexp = new RegExp(/(?:^|\s)(?:#)([a-zA-Z\d]+)/gm)
+
+const getTags = (r, t) => {
+    var tl = new Set(), m
+    while(m = r.exec(t)) {
+        tl.add(m[1])
+    }
+    return Array.from(tl)
+}
+
 const parseCampaignPage = (c, res) => {
     var $ = res.$
     var nonStickyPosts = 0
@@ -45,26 +56,23 @@ const parsePostPage = (c, res) => {
     var $ = res.$
     var url = res.request.uri.href
     const title = $('h1.posttitle').text().trim()
-    pageEmitter.emit('document', {
-        id: url,
-        url,
-        title,
-        author: '',
-        body: ''
-    })
+    var pageTags = getTags(pageTitleRegexp, title)
 
     $('div.post').each((i, e) => {
         var postId = $(e).attr('data-postid')
         var author = $('div.name a', e).text().trim()
         var body = $('div.postcontent', e).text().trim()
         var permalink = roll20Url(`/forum/permalink/${postId}`)
+        var postTags = getTags(bodyRegexp, body)
         pageEmitter.emit('document', {
             id: postId,
             url: permalink,
+            tags: postTags.concat(pageTags),
             title,
             author,
             body
         })
+        pageTags = []
     })
 
     var olderUrl = $('div.postnav ul.pagination li:not(.active) a')
