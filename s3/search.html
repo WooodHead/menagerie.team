@@ -165,7 +165,7 @@
               .append($("<a>")
                 .attr('href', '#')
                 .on("click", function() {
-                  $("#searchText").val("tags:" + tag)
+                  $("#searchText").val("#" + tag)
                   doSearch()
                   return false;
                 })
