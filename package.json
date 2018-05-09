@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "build": "webpack --mode production ./src/index.js --output ./s3/search.js",
     "crawl": "node -r dotenv/config crawler/index.js > s3/search.json",
     "deploy": "aws s3 sync s3/ s3://menagerie.team/",
     "serve": "http-server s3/"
@@ -11,11 +12,17 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "lunr": "^2.1.5"
+    "lunr": "^2.2.0"
   },
   "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-loader": "^7.1.4",
+    "babel-preset-env": "^1.6.1",
     "crawler": "^1.1.2",
     "dotenv": "^5.0.1",
-    "http-server": "^0.11.1"
+    "eslint": "^4.19.1",
+    "http-server": "^0.11.1",
+    "webpack": "^4.8.1",
+    "webpack-cli": "^2.1.3"
   }
 }
