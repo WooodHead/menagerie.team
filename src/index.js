@@ -1,86 +1,106 @@
-var store;
-var idx;
+import lunr from 'lunr'
 
-function truncate(ml, s) {
-  if (s && s.length > ml) {
-    return s.substr(0, ml) + "...";
-  } else {
-    return s;
-  }
-}
+var store
+var idx
+
+const truncate = (ml, s) => (s && s.length > ml) ? `${s.substr(0, ml)}...` : s
 
 function makeElementFromDoc(doc) {
-  var el = $("<p>")
-    .append($("<a>")
-      .attr("target", "_blank")
-      .attr("href", doc.url)
+  var el = $('<p>')
+    .addClass('search-hit')
+    .attr('id', doc.id)
+    .append($('<a>')
+      .attr('target', '_blank')
+      .attr('href', doc.url)
       .text(doc.title)
     );
   if (doc.body) {
-    el.append($("<br>"))
-      .append($("<small>")
+    el.append($('<br>'))
+      .append($('<small>')
+        .addClass('search-hit-summary')
         .html(truncate(80, doc.body))
       );
   }
   return el;
 }
 
-function doSearch() {
-  var text = $("#searchText").val().replace('#', 'tags:')
-  var sortOrder = $("#sortOrder").val()
-  try {
-    var results = idx.search(text);
-    if (sortOrder == "ref") {
-      results.sort(function (a, b) {
-        return parseInt(b.ref) - parseInt(a.ref)
-      })
-    }
-    $("#searchError").transition('hide');
-    console.log(results);
+function addTagToSearch(tag) {
+  const searchText = $('#searchText').val()
+  var newText = ''
+  if (!searchText) {
+    newText = tag
+  } else if (searchText.includes(tag)) {
+    return
+  } else {
+    newText = `${searchText} ${tag}`
+  }
+  $('#searchText').val(newText)
+  doSearch()
+  return false
+}
 
-    $("#searchResults").empty().append(
-      results.length ? results.map(function (result) {
-        return makeElementFromDoc(store[result.ref]);
-      }) : $("<p><strong>No results found for '" + text + "'</strong></p>")
-    );
+function makeTag(tag) {
+  return $('<span>')
+    .append($('<a>')
+      .attr('href', '#')
+      .on('click', (e) => addTagToSearch(`#${tag}`))
+      .text(`#${tag} `)
+  )
+}
+
+const sortByRef = (a, b) => parseInt(b.ref) - parseInt(a.ref)
+
+function getSearchResults(searchText) {
+  console.log(searchText)
+  const results = idx.search(searchText);
+  const sortOrder = $('#sortOrder').val()
+  if (sortOrder == 'ref') {
+    results.sort(sortByRef)
+  }
+  console.log(results)
+  return results
+}
+
+function doSearch() {
+  const searchText = $('#searchText').val()
+  $('#searchError').transition('hide');
+  try {
+    const results = getSearchResults(searchText.replace(/\B#/g, 'tags:'))
+      $('#searchResults').empty().append(
+        results.length ?
+          results.map((r) => makeElementFromDoc(store[r.ref])) :
+          $(`<p><strong>No results found for '${searchText}'</strong></p>`)
+      )
   } catch (e) {
     console.error(e);
-    $("#searchErrorText").text(e);
-    $("#searchError").transition('show');
+    $('#searchErrorText').text(e);
+    $('#searchError').transition('show');
   }
-};
+}
+
+function buildIndex(data) {
+  store = data.store
+  idx = lunr.Index.load(data.idx)
+  $('#searchTags').empty().append(data.tags.length ? data.tags.map(makeTag) : $('<p>No tags</p>'))
+  $('#searchDiv').removeClass('loading')
+  $('.search-control').removeAttr('disabled')
+  $('#rebuildDate').text(data.date)
+}
 
 $(document).ready(function () {
-  $.ajax({ url: "search.json" }).done(function (data) {
-    store = data.store;
-    idx = lunr.Index.load(data.idx);
-    $("#searchTags").empty().append(
-      data.tags.length ? data.tags.map(function (tag) {
-        var el = $("<span>")
-          .append($("<a>")
-            .attr('href', '#')
-            .on("click", function () {
-              $("#searchText").val("#" + tag)
-              doSearch()
-              return false;
-            })
-            .text("#" + tag + " ")
-          );
-        return el;
-      }) : $("<p>No tags</p>")
-    );
-    $("#searchDiv").removeClass("loading");
-    $("#searchText").removeAttr("disabled");
-    $("#rebuildDate").text(data.date);
-  });
+  $.ajax({ url: 'search.json' }).done(buildIndex)
 
-  $("#searchText").keyup(function (event) {
-    if (event.keyCode === 13 && idx) {
-      doSearch();
+  $('#searchText').keyup((e) => {
+    if (e.keyCode === 13 && idx) {
+      doSearch()
     }
-  });
+  })
 
-  $('.message .close').on('click', function () {
-    $(this).closest('.message').transition('hide');
-  });
-});
+  $('#sortOrder').on('change', (e) => {
+    if (idx) {
+      doSearch()
+    }
+  })
+
+  $('.message .close').on('click', () => $(this).closest('.message').transition('hide'))
+})

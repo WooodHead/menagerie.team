@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <!-- Standard Meta -->
   <meta charset="utf-8" />
@@ -10,7 +11,6 @@
   <title>The Menagerie - Search</title>
   <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.13/semantic.min.css">
   <style type="text/css">
-
     .hidden.menu {
       display: none;
     }
@@ -19,18 +19,22 @@
       min-height: 350;
       padding: 1em 0em;
     }
+
     .masthead .logo.item img {
       margin-right: 1em;
     }
+
     .masthead .ui.menu .ui.button {
       margin-left: 0.5em;
     }
+
     .masthead h1.ui.header {
       margin-top: 1em;
       margin-bottom: 0em;
       font-size: 4em;
       font-weight: normal;
     }
+
     .masthead h2 {
       font-size: 1.7em;
       font-weight: normal;
@@ -39,19 +43,24 @@
     .ui.vertical.stripe {
       padding: 8em 0em;
     }
+
     .ui.vertical.stripe h3 {
       font-size: 2em;
     }
-    .ui.vertical.stripe .button + h3,
-    .ui.vertical.stripe p + h3 {
+
+    .ui.vertical.stripe .button+h3,
+    .ui.vertical.stripe p+h3 {
       margin-top: 3em;
     }
+
     .ui.vertical.stripe .floated.image {
       clear: both;
     }
+
     .ui.vertical.stripe p {
       font-size: 1.33em;
     }
+
     .ui.vertical.stripe .horizontal.divider {
       margin: 3em 0em;
     }
@@ -59,6 +68,7 @@
     .quote.stripe.segment {
       padding: 0em;
     }
+
     .quote.stripe.segment .grid .column {
       padding-top: 5em;
       padding-bottom: 5em;
@@ -95,97 +105,98 @@
         font-size: 1.5em;
       }
     }
-
-
   </style>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.13/semantic.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/lunr.js/2.1.5/lunr.min.js"></script>
   <script src="search.js"></script>
 </head>
+
 <body>
 
-<!-- Page Contents -->
-<div class="pusher">
-  <div class="ui vertical stripe segment">
-    <div class="ui top aligned stackable grid container">
-      <div class="row">
-        <div class="twelve wide column">
-          <h1>Menagerie Roll20 Forum Search</h1>
-          <p>
-            <small>
-              Indexes were rebuilt:
-              <span id="rebuildDate">never</span>
-            </small>
-          </p>
-          <div class="ui fluid right action left icon input loading" id="searchDiv">
-            <i class="search icon"></i>
-            <input type="text" placeholder="Search" id="searchText" disabled>
-            <select class="ui compact selection dropdown" id="sortOrder" onChange="doSearch()">
-              <option selected value="">Relevance</option>
-              <option value="ref">Date</option>
-            </select>
-          </div>
-          <br />
-          <div class="ui hidden negative message" id="searchError">
-            <i class="close icon"></i>
-            <div class="header">
-              There was an error with your search
+  <!-- Page Contents -->
+  <div class="pusher">
+    <div class="ui vertical stripe segment">
+      <div class="ui top aligned stackable grid container">
+        <div class="row">
+          <div class="twelve wide column">
+            <h1>Menagerie Roll20 Forum Search</h1>
+            <p>
+              <small>
+                Indexes were rebuilt:
+                <span id="rebuildDate">never</span>
+              </small>
+            </p>
+            <div class="ui fluid right action left icon input loading" id="searchDiv">
+              <i class="search icon"></i>
+              <input type="text" class="search-control" placeholder="Search" id="searchText" disabled>
+              <select class="ui compact selection dropdown search-control" id="sortOrder" disabled>
+                <option selected value="">Relevance</option>
+                <option value="ref">Date</option>
+              </select>
             </div>
-            <p id="searchErrorText"></p>
-          </div>
-          <div id="searchResults">
-            <div class="ui list">
-              <div class="item">
-                <i class="search icon"></i>
-                <div class="content">
-                  <div class="header">keyword1 keyword2</div>
-                  <div class="description">Find <strong>keyword1</strong> OR <strong>keyword2</strong>. Favors matches that have more keywords.</div>
-                </div>
+            <br />
+            <div class="ui hidden negative message" id="searchError">
+              <i class="close icon"></i>
+              <div class="header">
+                There was an error with your search
               </div>
-              <div class="item">
-                <i class="search icon"></i>
-                <div class="content">
-                  <div class="header">field:keyword1 field:keyword2</div>
-                  <div class="description">
-                    Find <strong>keyword1</strong> OR <strong>keyword2</strong> in specific fields.
-                    Valid fields are 'title', 'author', and 'body'.
-                    Example: 'author:dave body:Alycia' finds everything from Dave about Alycia.
+              <p id="searchErrorText"></p>
+            </div>
+            <div id="searchResults">
+              <div class="ui list">
+                <div class="item">
+                  <i class="search icon"></i>
+                  <div class="content">
+                    <div class="header">keyword1 keyword2</div>
+                    <div class="description">Find
+                      <strong>keyword1</strong> OR
+                      <strong>keyword2</strong>. Favors matches that have more keywords.</div>
+                  </div>
+                </div>
+                <div class="item">
+                  <i class="search icon"></i>
+                  <div class="content">
+                    <div class="header">field:keyword1 field:keyword2</div>
+                    <div class="description">
+                      Find
+                      <strong>keyword1</strong> OR
+                      <strong>keyword2</strong> in specific fields. Valid fields are 'title', 'author', and 'body'. Example: 'author:dave
+                      body:Alycia' finds everything from Dave about Alycia.
+                    </div>
+                  </div>
+                </div>
+                <div class="item">
+                  <i class="search icon"></i>
+                  <div class="content">
+                    <div class="header">keyword*</div>
+                    <div class="description">Wildcard (*) matches at the start, middle, or end of a search term.</div>
+                  </div>
+                </div>
+                <div class="item">
+                  <i class="search icon"></i>
+                  <div class="content">
+                    <div class="header">keyword1^10 keyword2</div>
+                    <div class="description">Boost the relative power of one keyword compared to others.</div>
+                  </div>
+                </div>
+                <div class="item">
+                  <i class="search icon"></i>
+                  <div class="content">
+                    <div class="header">chin~1</div>
+                    <div class="description">Fuzzy match keywords, number indicates edit distance (e.g. chin or chan).</div>
                   </div>
                 </div>
               </div>
-              <div class="item">
-                <i class="search icon"></i>
-                <div class="content">
-                  <div class="header">keyword*</div>
-                  <div class="description">Wildcard (*) matches at the start, middle, or end of a search term.</div>
-                </div>
-              </div>
-              <div class="item">
-                <i class="search icon"></i>
-                <div class="content">
-                  <div class="header">keyword1^10 keyword2</div>
-                  <div class="description">Boost the relative power of one keyword compared to others.</div>
-                </div>
-              </div>
-              <div class="item">
-                <i class="search icon"></i>
-                <div class="content">
-                  <div class="header">chin~1</div>
-                  <div class="description">Fuzzy match keywords, number indicates edit distance (e.g. chin or chan).</div>
-                </div>
-              </div>
             </div>
           </div>
-        </div>
-        <div class="four wide column">
-          <p id="searchTags"></p>
+          <div class="four wide column">
+            <p id="searchTags"></p>
+          </div>
         </div>
       </div>
     </div>
   </div>
-</div>
 
 </body>
 
