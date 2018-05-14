@@ -1,6 +1,7 @@
 const Crawler = require("crawler")
 const EventEmitter = require('events')
 const fs = require('fs')
+const { or, reject } = require('ramda')
 const request = require('request')
 const { URL } = require('url')
 
@@ -17,12 +18,14 @@ module.exports = pageEmitter
 const pageTitleRegexp = new RegExp(/\[([^\[]*)\]/g)
 const bodyRegexp = new RegExp(/(?:^|\s)(?:#)([a-zA-Z\d]+)/gm)
 
+const isNumeric = (s) => !!or(s, "").match(/^\d+$/)
+
 const getTags = (r, t) => {
     var tl = new Set(), m
     while(m = r.exec(t)) {
         tl.add(m[1])
     }
-    return Array.from(tl)
+    return reject(isNumeric, Array.from(tl))
 }
 
 const parseCampaignPage = (c, res) => {

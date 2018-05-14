@@ -12,7 +12,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "lunr": "^2.2.0"
+    "lunr": "^2.2.0",
+    "ramda": "^0.25.0"
   },
   "devDependencies": {
     "babel-core": "^6.26.3",
