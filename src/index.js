@@ -1,11 +1,16 @@
 import lunr from 'lunr'
+import { filter, has, keys } from 'ramda'
 
 var store
 var idx
 
 const truncate = (ml, s) => (s && s.length > ml) ? `${s.substr(0, ml)}...` : s
 
-function makeElementFromDoc(doc) {
+const hasBodyProperty = (e) => has('body')
+
+const bodyKeywords = (hit) => filter(hasBodyProperty, keys(hit.matchData.metadata))
+
+function makeElementFromDoc(doc, hit) {
   var el = $('<p>')
     .addClass('search-hit')
     .attr('id', doc.id)
@@ -15,11 +20,14 @@ function makeElementFromDoc(doc) {
       .text(doc.title)
     );
   if (doc.body) {
+    var summary = $('<small>')
+      .addClass('search-hit-summary')
+      .html(truncate(80, doc.body))
+    for(var kw of bodyKeywords(hit)) {
+      summary.addClass(`search-hit-keyword-${kw}`)
+    }
     el.append($('<br>'))
-      .append($('<small>')
-        .addClass('search-hit-summary')
-        .html(truncate(80, doc.body))
-      );
+      .append(summary)
   }
   return el;
 }
@@ -61,16 +69,29 @@ function getSearchResults(searchText) {
   return results
 }
 
+function highlightResults(results) {
+  var kwl = {}
+  for (var hit of results) {
+    for (var kw of bodyKeywords(hit)) {
+      kwl[kw] = true;
+    }
+  }
+  for (var kw of keys(kwl)) {
+    $(`.search-hit-keyword-${kw}`).mark(kw)
+  }
+}
+
 function doSearch() {
   const searchText = $('#searchText').val()
   $('#searchError').transition('hide');
   try {
     const results = getSearchResults(searchText.replace(/\B#/g, 'tags:'))
-      $('#searchResults').empty().append(
-        results.length ?
-          results.map((r) => makeElementFromDoc(store[r.ref])) :
-          $(`<p><strong>No results found for '${searchText}'</strong></p>`)
-      )
+    $('#searchResults').empty().append(
+      results.length ?
+        results.map((r) => makeElementFromDoc(store[r.ref], r)) :
+        $(`<p><strong>No results found for '${searchText}'</strong></p>`)
+    )
+    highlightResults(results)
   } catch (e) {
     console.error(e);
     $('#searchErrorText').text(e);
