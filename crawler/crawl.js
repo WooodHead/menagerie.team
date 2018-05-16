@@ -67,9 +67,12 @@ const parsePostPage = (c, res) => {
         var author = $('div.name a', e).text().trim()
         var body = $('div.postcontent', e).text().trim()
         var permalink = roll20Url(`/forum/permalink/${postId}`)
-        var datestamp = $('div.timestamp').text().trim()
+        var datestamp = $('div.timestamp', e).text().trim()
         var date = moment(parseInt(datestamp) * 1000).format()
         var postTags = getTags(bodyRegexp, body)
+        if (!body) {
+            postTags.push('Image')
+        }
         pageEmitter.emit('document', {
             id: postId,
             url: permalink,
