@@ -1,6 +1,7 @@
 const Crawler = require("crawler")
 const EventEmitter = require('events')
 const fs = require('fs')
+const moment = require('moment')
 const { or, reject } = require('ramda')
 const request = require('request')
 const { URL } = require('url')
@@ -66,11 +67,17 @@ const parsePostPage = (c, res) => {
         var author = $('div.name a', e).text().trim()
         var body = $('div.postcontent', e).text().trim()
         var permalink = roll20Url(`/forum/permalink/${postId}`)
+        var datestamp = $('div.timestamp', e).text().trim()
+        var date = moment(parseInt(datestamp) * 1000).format()
         var postTags = getTags(bodyRegexp, body)
+        if (!body) {
+            postTags.push('Image')
+        }
         pageEmitter.emit('document', {
             id: postId,
             url: permalink,
             tags: postTags.concat(pageTags),
+            date,
             title,
             author,
             body
