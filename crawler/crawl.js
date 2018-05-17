@@ -18,6 +18,7 @@ module.exports = pageEmitter
 
 const pageTitleRegexp = new RegExp(/\[([^\[]*)\]/g)
 const bodyRegexp = new RegExp(/(?:^|\s)(?:#)([a-zA-Z\d]+)/gm)
+const scriptRegexp = new RegExp(/data-postid=(\d+).*BASE64.decode\("([^"]+)"\)/)
 
 const isNumeric = (s) => !!or(s, "").match(/^\d+$/)
 
@@ -70,8 +71,21 @@ const parsePostPage = (c, res) => {
         var datestamp = $('div.timestamp', e).text().trim()
         var date = moment(parseInt(datestamp) * 1000).format()
         var postTags = getTags(bodyRegexp, body)
+
+        $('script', e).each((i, e) => {
+            var scriptText = $(e).text()
+            var m
+            if ((m = scriptText.match(scriptRegexp))) {
+                var htmlBody = Buffer.from(m[2], 'base64').toString()
+                var htmlE = $('<div>').html(htmlBody)
+                if (htmlE.has('img').length > 0) {
+                    postTags.push('Image')
+                }
+            }
+        })
+
         if (!body) {
-            postTags.push('Image')
+            postTags.push('ImageOnly')
         }
         pageEmitter.emit('document', {
             id: postId,
