@@ -8,9 +8,9 @@ const { URL } = require('url')
 
 const jar = request.jar()
 
-const roll20Url = (urlFragment) => {
-    return new URL(urlFragment, 'https://app.roll20.net').toString()
-}
+const isCampaignPage = (res) => res.request.uri.pathname.startsWith('/campaigns/forum/')
+
+const isPostPage = (res) => res.request.uri.pathname.startsWith('/forum/post/')
 
 const pageEmitter = new EventEmitter()
 
@@ -39,20 +39,14 @@ const parseCampaignPage = (c, res) => {
         if (!$(e).hasClass('stickypost')) {
             nonStickyPosts = nonStickyPosts + 1
         }
-        c.queue({
-            uri: roll20Url(postUrl),
-            postPage: true
-        })
+        c.queue(postUrl)
     })
 
     if (nonStickyPosts > 0) {
         // We care about pagination after all
         var nextPageUrl = $('div.nextpage a').attr('href')
         if (nextPageUrl) {
-            c.queue({
-                uri: roll20Url(nextPageUrl),
-                campaignPage: true
-            })
+            c.queue(nextPageUrl)
         }
     }
 }
@@ -67,7 +61,7 @@ const parsePostPage = (c, res) => {
         var postId = $(e).attr('data-postid')
         var author = $('div.name a', e).text().trim()
         var body = $('div.postcontent', e).text().trim()
-        var permalink = roll20Url(`/forum/permalink/${postId}`)
+        var permalink = `https://app.roll20.net/forum/permalink/${postId}`
         var datestamp = $('div.timestamp', e).text().trim()
         var date = moment(parseInt(datestamp) * 1000).format()
         var postTags = getTags(bodyRegexp, body)
@@ -101,10 +95,7 @@ const parsePostPage = (c, res) => {
 
     var olderUrl = $('div.postnav ul.pagination li:not(.active) a')
     if (olderUrl && olderUrl.attr('href')) {
-        c.queue({
-            uri: roll20Url(olderUrl.attr('href')),
-            postPage: true
-        })
+        c.queue(olderUrl.attr('href'))
     }
 }
 
@@ -112,6 +103,7 @@ var c = new Crawler({
     maxConnections: 8,
     skipDuplicates: true,   // TODO: migrate to seenreq
     preRequest: (options, done) => {
+        options.baseUrl = 'https://app.roll20.net/'
         options.jar = jar
         done()
     },
@@ -121,9 +113,9 @@ var c = new Crawler({
         } else {
             console.error(res.request.uri.href)
             var $ = res.$;
-            if (res.options.campaignPage) {
+            if (isCampaignPage(res)) {
                 parseCampaignPage(c, res)
-            } else if (res.options.postPage) {
+            } else if (isPostPage(res)) {
                 parsePostPage(c, res)
             } else {
                 console.error("Unknown page type")
@@ -139,7 +131,7 @@ c.on('drain', () => {
 
 pageEmitter.on('start', () => {
     const options = {
-        url: roll20Url('/sessions/create'),
+        url: 'https://app.roll20.net/sessions/create',
         form: {
             email: process.env.ROLL20_USERNAME,
             password: process.env.ROLL20_PASSWORD
@@ -148,9 +140,6 @@ pageEmitter.on('start', () => {
     }
     
     request.post(options, (err, res, body) => {
-        c.queue({
-            uri: roll20Url('/campaigns/forum/1698225'),
-            campaignPage: true
-        })
+        c.queue('/campaigns/forum/1698225')
     })
 })
