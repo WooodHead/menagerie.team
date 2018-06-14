@@ -4,8 +4,6 @@ import { filter, has, keys } from 'ramda'
 var store
 var idx
 
-const truncate = (ml, s) => (s && s.length > ml) ? `${s.substr(0, ml)}...` : s
-
 const hasBodyProperty = (e) => has('body')
 
 const bodyKeywords = (hit) => filter(hasBodyProperty, keys(hit.matchData.metadata))
@@ -22,7 +20,7 @@ function makeElementFromDoc(doc, hit) {
   if (doc.body) {
     var summary = $('<small>')
       .addClass('search-hit-summary')
-      .html(truncate(80, doc.body))
+      .html(doc.body)
     for(var kw of bodyKeywords(hit)) {
       summary.addClass(`search-hit-keyword-${kw}`)
     }
@@ -83,9 +81,11 @@ function highlightResults(results) {
 
 function doSearch() {
   const searchText = $('#searchText').val()
+  // _gaq.push(['_trackEvent', 'search', 'keywords', 'search text', searchText, true]);
   $('#searchError').transition('hide');
   try {
     const results = getSearchResults(searchText.replace(/\B#/g, 'tags:'))
+    // _gaq.push(['_trackEvent', 'search', 'keywords', 'search results', results.length, true]);
     $('#searchResults').empty().append(
       results.length ?
         results.map((r) => makeElementFromDoc(store[r.ref], r)) :

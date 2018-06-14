@@ -1,5 +1,8 @@
 const lunr = require('lunr')
+const { curry, evolve } = require('ramda')
 const crawler = require('./crawl')
+
+const truncate = curry((ml, s) => (s && s.length > ml) ? `${s.substr(0, ml)}...` : s)
 
 var store = {}
 var tags = new Set()
@@ -25,7 +28,9 @@ crawler.on('done', () => {
       for(var tag of (document.tags || [])) {
         tags.add(tag)
       }
-      store[document.id] = document
+      store[document.id] = evolve({
+        body: truncate(80)
+      })(document)
     })  
   })
 
