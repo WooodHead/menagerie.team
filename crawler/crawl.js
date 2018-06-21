@@ -71,6 +71,7 @@ const parsePostPage = (c, res) => {
         var datestamp = $('div.timestamp', e).text().trim()
         var date = moment(parseInt(datestamp) * 1000).format()
         var postTags = getTags(bodyRegexp, body)
+        var images = []
 
         $('script', e).each((i, e) => {
             var scriptText = $(e).text()
@@ -78,7 +79,10 @@ const parsePostPage = (c, res) => {
             if ((m = scriptText.match(scriptRegexp))) {
                 var htmlBody = Buffer.from(m[2], 'base64').toString()
                 var htmlE = $('<div>').html(htmlBody)
-                if (htmlE.has('img').length > 0) {
+                $('img', htmlE).each((ii, ie) => {
+                    images.push($(ie).attr('src'))
+                })
+                if (images.length > 0) {
                     postTags.push('Image')
                 }
             }
@@ -94,7 +98,8 @@ const parsePostPage = (c, res) => {
             date,
             title,
             author,
-            body
+            body,
+            images
         })
         pageTags = []
     })
