@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "build": "webpack --mode production ./src/index.js --output ./s3/search.js",
-    "crawl": "node -r dotenv/config crawler/index.js > s3/search.json",
+    "crawl": "node -r dotenv/config crawler/index.js",
     "deploy": "aws s3 sync s3/ s3://menagerie.team/",
-    "publish": "gzip -9 s3/search.json && aws s3 cp --content-encoding=gzip s3/search.json.gz s3://menagerie.team/search.json",
+    "publish": "gzip -9f s3/search.json && aws s3 cp --content-encoding=gzip s3/search.json.gz s3://menagerie.team/search.json",
     "serve": "http-server s3/"
   },
   "author": "",

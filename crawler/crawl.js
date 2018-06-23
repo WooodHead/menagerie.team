@@ -114,7 +114,7 @@ const parsePostPage = (c, res) => {
 }
 
 var c = new Crawler({
-    maxConnections: 8,
+    maxConnections: 4,
     skipDuplicates: true,   // TODO: migrate to seenreq
     preRequest: (options, done) => {
         options.jar = jar
@@ -124,7 +124,7 @@ var c = new Crawler({
         if (error) {
             console.error(error)
         } else {
-            console.error(res.request.uri.href)
+            // console.error(res.request.uri.href)
             var $ = res.$;
             if (res.options.campaignPage) {
                 parseCampaignPage(c, res)

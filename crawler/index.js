@@ -1,3 +1,4 @@
+const fs = require('fs')
 const lunr = require('lunr')
 const { curry, evolve } = require('ramda')
 const crawler = require('./crawl')
@@ -35,12 +36,14 @@ crawler.on('done', () => {
   })
 
   d = new Date();
-  console.log(JSON.stringify({
+  const searchJson = JSON.stringify({
     date: d.toLocaleString(),
     store,
     tags: Array.from(tags).sort(),
     idx
-  }))
+  })
+
+  fs.writeFileSync('s3/search.json', searchJson)
 })
 
 crawler.emit('start')
