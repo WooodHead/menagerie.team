@@ -18,7 +18,8 @@
 
   <!-- Site Properties -->
   <title>The Menagerie - Search</title>
-  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.13/semantic.min.css">
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.12/semantic.min.css">
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui-calendar/0.0.8/calendar.min.css">
   <style type="text/css">
     .hidden.menu {
       display: none;
@@ -117,7 +118,8 @@
   </style>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.13/semantic.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.12/semantic.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui-calendar/0.0.8/calendar.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/jquery.mark.min.js"></script>
   <script src="search.js"></script>
 </head>
@@ -140,6 +142,12 @@
             <div class="ui fluid right action left icon input loading" id="searchDiv">
               <i class="search icon"></i>
               <input type="text" class="search-control" placeholder="Search" id="searchText" disabled>
+              <div class="ui calendar search-control" id="searchDate">
+                <div class="ui input left icon">
+                  <i class="calendar icon"></i>
+                  <input type="text" placeholder="Date">
+                </div>
+              </div>
               <select class="ui compact selection dropdown search-control" id="sortOrder" disabled>
                 <option selected value="">Relevance</option>
                 <option value="ref">Date</option>

@@ -58,7 +58,12 @@ const sortByRef = (a, b) => parseInt(b.ref) - parseInt(a.ref)
 
 function getSearchResults(searchText) {
   console.log(searchText)
-  const results = idx.search(searchText);
+  var results = idx.search(searchText);
+  const earliestDate = $('#searchDate').calendar('get date')
+  if (earliestDate) {
+    console.log('Filtering results by date')
+    results = filter((r) => Date.parse(store[r.ref].date) >= earliestDate, results)
+  }
   const sortOrder = $('#sortOrder').val()
   if (sortOrder == 'ref') {
     results.sort(sortByRef)
@@ -110,6 +115,14 @@ function buildIndex(data) {
 
 $(document).ready(function () {
   $.ajax({ url: 'search.json' }).done(buildIndex)
+
+  $('#searchDate').calendar({
+    type: 'date',
+    onChange: function(date, text, mode) {
+      setTimeout(doSearch, 0)
+      return true
+    }
+  })
 
   $('#searchText').keyup((e) => {
     if (e.keyCode === 13 && idx) {
