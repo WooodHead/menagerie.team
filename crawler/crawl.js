@@ -2,11 +2,13 @@ const Crawler = require("crawler")
 const EventEmitter = require('events')
 const fs = require('fs')
 const moment = require('moment')
-const { or, reject } = require('ramda')
+const { addIndex, head, map, or, pluck, reject } = require('ramda')
 const request = require('request')
+const seenreq = require('seenreq')
 const { URL } = require('url')
 
 const jar = request.jar()
+const seen = new seenreq()
 
 const roll20Url = (urlFragment) => {
     return new URL(urlFragment, 'https://app.roll20.net').toString()
@@ -30,34 +32,48 @@ const getTags = (r, t) => {
     return reject(isNumeric, Array.from(tl))
 }
 
-const parseCampaignPage = (c, res) => {
+const parseCampaignPage = async (c, res) => {
     var $ = res.$
     var nonStickyPosts = 0
+    var postUrls = []
 
     $('div.postlisting').each((i, e) => {
-        var postUrl = $('div.title a', e).attr('href').trim()
+        var postUrl = roll20Url($('div.title a', e).attr('href').trim())
+        postUrls.push({
+            uri: postUrl,
+            postPage: true
+        })
         if (!$(e).hasClass('stickypost')) {
             nonStickyPosts = nonStickyPosts + 1
         }
-        c.queue({
-            uri: roll20Url(postUrl),
-            postPage: true
-        })
     })
 
     if (nonStickyPosts > 0) {
         // We care about pagination after all
         var nextPageUrl = $('div.nextpage a').attr('href')
         if (nextPageUrl) {
-            c.queue({
-                uri: roll20Url(nextPageUrl),
+            nextPageUrl = roll20Url(nextPageUrl)
+            postUrls.push({
+                uri: nextPageUrl,
                 campaignPage: true
             })
         }
     }
+
+    // For each URL, did we see it, true or false?
+    var seenExistResults = await Promise.all(map(o => seen.exists(o.uri), postUrls))
+
+    // Seenreq returns an array of booleans, unfuck that data structure
+    seenExistResults = map(head, seenExistResults)
+
+    // Throw out any URLs we've already visited
+    const unseenUrls = addIndex(reject)((e, i) => seenExistResults[i], postUrls)
+
+    // Enqueue all posts, and next page
+    map(opt => c.queue(opt), unseenUrls)
 }
 
-const parsePostPage = (c, res) => {
+const parsePostPage = async (c, res) => {
     var $ = res.$
     var url = res.request.uri.href
     const title = $('h1.posttitle').text().trim()
@@ -73,6 +89,7 @@ const parsePostPage = (c, res) => {
         var postTags = getTags(bodyRegexp, body)
         var images = []
 
+        // What the fuck, Roll20
         $('script', e).each((i, e) => {
             var scriptText = $(e).text()
             var m
@@ -104,18 +121,25 @@ const parsePostPage = (c, res) => {
         pageTags = []
     })
 
-    var olderUrl = $('div.postnav ul.pagination li:not(.active) a')
-    if (olderUrl && olderUrl.attr('href')) {
-        c.queue({
-            uri: roll20Url(olderUrl.attr('href')),
-            postPage: true
-        })
+    try {
+        var olderUrl = $('div.postnav ul.pagination li:not(.active) a')
+        if (olderUrl && olderUrl.attr('href')) {
+            olderUrl = roll20Url(olderUrl.attr('href'))
+            const found = await seen.exists(olderUrl)
+            if (!found[0]) {
+                c.queue({
+                    uri: olderUrl,
+                    postPage: true
+                })
+            }
+        }
+    } catch (e) {
+        console.error(e)
     }
 }
 
 var c = new Crawler({
     maxConnections: 4,
-    skipDuplicates: true,   // TODO: migrate to seenreq
     preRequest: (options, done) => {
         options.jar = jar
         done()
@@ -123,18 +147,19 @@ var c = new Crawler({
     callback: (error, res, done) => {
         if (error) {
             console.error(error)
+            done()
         } else {
-            // console.error(res.request.uri.href)
+            console.error(res.request.uri.href)
             var $ = res.$;
             if (res.options.campaignPage) {
-                parseCampaignPage(c, res)
+                parseCampaignPage(c, res).then(() => done()).catch(() => done())
             } else if (res.options.postPage) {
-                parsePostPage(c, res)
+                parsePostPage(c, res).then(() => done()).catch(() => done())
             } else {
                 console.error("Unknown page type")
+                done()
             }
         }
-        done()
     }
 })
 
@@ -151,11 +176,15 @@ pageEmitter.on('start', () => {
         },
         jar: jar
     }
-    
-    request.post(options, (err, res, body) => {
-        c.queue({
-            uri: roll20Url('/campaigns/forum/1698225'),
-            campaignPage: true
-        })
+
+    request.post(options, (err, response, body) => {
+        seen.initialize()
+            .then(() => {
+                c.queue({
+                    uri: roll20Url('/campaigns/forum/1698225'),
+                    campaignPage: true
+                })
+            })
+            .catch(console.error)
     })
 })
